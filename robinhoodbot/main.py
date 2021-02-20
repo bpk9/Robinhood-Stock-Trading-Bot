@@ -1,3 +1,4 @@
+import pyotp
 import robin_stocks as r
 import pandas as pd
 import numpy as np
@@ -10,7 +11,8 @@ from config import *
 
 #Log in to Robinhood
 #Put your username and password in a config.py file in the same directory (see sample file)
-login = r.login(rh_username,rh_password)
+totp  = pyotp.TOTP(rh_2fa_code).now()
+login = r.login(rh_username,rh_password, totp)
 
 #Safe divide by zero division function
 def safe_division(n, d):
