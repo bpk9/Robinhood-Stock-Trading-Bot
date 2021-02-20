@@ -6,7 +6,7 @@ To Install:
 
 ```bash
 git clone https://github.com/2018kguo/RobinhoodBot.git
-cd RobinhoodBot/
+cd Robinbood-Stock-Trading-Bot/
 pip install -r requirements.txt
 cp config.py.sample config.py # add auth info after copying
 ```
@@ -14,6 +14,6 @@ cp config.py.sample config.py # add auth info after copying
 To Run:
 
 ```python
-cd RobinboodBot/robinhoodbot
+cd Robinbood-Stock-Trading-Bot/robinhoodbot
 python3 main.py
 ```
