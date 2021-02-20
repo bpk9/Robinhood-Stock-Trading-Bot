@@ -18,6 +18,13 @@ login = r.login(rh_username,rh_password, totp)
 def safe_division(n, d):
     return n / d if d else 0
 
+def get_spy_symbols():
+    """
+    Returns: the symbol for each stock in the S&P 500 as a list of strings
+    """
+    symbols = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')[0]['Symbol']
+    return list(symbols.values.flatten())
+
 def get_watchlist_symbols():
     """
     Returns: the symbol for each stock in your watchlist as a list of strings
@@ -241,13 +248,13 @@ def scan_stocks():
         print("----- DEBUG MODE -----\n")
     print("----- Starting scan... -----\n")
     register_matplotlib_converters()
-    watchlist_symbols = get_watchlist_symbols()
+    spy_symbols = get_spy_symbols()
     portfolio_symbols = get_portfolio_symbols()
     holdings_data = get_modified_holdings()
     potential_buys = []
     sells = []
     print("Current Portfolio: " + str(portfolio_symbols) + "\n")
-    print("Current Watchlist: " + str(watchlist_symbols) + "\n")
+    # print("Current Watchlist: " + str(watchlist_symbols) + "\n")
     print("----- Scanning portfolio for stocks to sell -----\n")
     for symbol in portfolio_symbols:
         cross = golden_cross(symbol, n1=50, n2=200, days=30, direction="below")
@@ -256,7 +263,7 @@ def scan_stocks():
             sells.append(symbol)
     profile_data = r.build_user_profile()
     print("\n----- Scanning watchlist for stocks to buy -----\n")
-    for symbol in watchlist_symbols:
+    for symbol in spy_symbols:
         if(symbol not in portfolio_symbols):
             cross = golden_cross(symbol, n1=50, n2=200, days=10, direction="above")
             if(cross == 1):
