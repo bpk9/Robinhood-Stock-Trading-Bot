@@ -125,7 +125,7 @@ def get_last_crossing(df, days, symbol="", direction=""):
         index -= 1
     if(found != lastIndex):
         if((direction == "above" and recentDiff) or (direction == "below" and not recentDiff)):
-            print(symbol + ": Short SMA crossed" + (" ABOVE " if recentDiff else " BELOW ") + "Long SMA at " + str(dates.at[found]) \
+            print(symbol + ": Short EMA crossed" + (" ABOVE " if recentDiff else " BELOW ") + "Long EMA at " + str(dates.at[found]) \
                 +", which was " + str(pd.Timestamp("now", tz='UTC') - dates.at[found]) + " ago", ", price at cross: " + str(prices.at[found]) \
                 + ", current price: " + str(prices.at[lastIndex]))
         return (1 if recentDiff else -1)
@@ -183,13 +183,13 @@ def golden_cross(stockTicker, n1, n2, days, direction=""):
     price = pd.Series(closingPrices)
     dates = pd.Series(dates)
     dates = pd.to_datetime(dates)
-    sma1 = ta.volatility.bollinger_mavg(price, window=int(n1), fillna=False)
-    sma2 = ta.volatility.bollinger_mavg(price, window=int(n2), fillna=False)
-    series = [price.rename("Price"), sma1.rename("Indicator1"), sma2.rename("Indicator2"), dates.rename("Dates")]
+    ema1 = ta.trend.EMAIndicator(price, int(n1)).ema_indicator()
+    ema2 = ta.trend.EMAIndicator(price, int(n2)).ema_indicator()
+    series = [price.rename("Price"), ema1.rename("Indicator1"), ema2.rename("Indicator2"), dates.rename("Dates")]
     df = pd.concat(series, axis=1)
     cross = get_last_crossing(df, days, symbol=stockTicker, direction=direction)
     if(cross) and plot:
-        show_plot(price, sma1, sma2, dates, symbol=stockTicker, label1=str(n1)+" day SMA", label2=str(n2)+" day SMA")
+        show_plot(price, ema1, ema2, dates, symbol=stockTicker, label1=str(n1)+" day EMA", label2=str(n2)+" day EMA")
     return cross
 
 def rsi(symbol, days):
