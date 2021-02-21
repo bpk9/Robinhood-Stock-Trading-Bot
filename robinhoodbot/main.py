@@ -192,6 +192,22 @@ def golden_cross(stockTicker, n1, n2, days, direction=""):
         show_plot(price, sma1, sma2, dates, symbol=stockTicker, label1=str(n1)+" day SMA", label2=str(n2)+" day SMA")
     return cross
 
+def rsi(symbol, days):
+    """Determine the relative strength index for a specified stock in the last X trading days
+
+    Args:
+        symbol(str): Symbol of the stock we're querying
+        days(int): Specifies the maximum number of days that the cross can occur by
+
+    Returns:
+        rsi(float): Relative strength index value for a specified stock in the last X trading days
+    """
+    history = r.get_historicals(symbol, span='year', bounds='regular')
+    closingPrices = [ float(item['close_price']) for item in history ]
+    price = pd.Series(closingPrices)
+    rsi = ta.momentum.RSIIndicator(close=price, window=int(days), fillna=False).rsi()
+    return rsi.iat[-1]
+
 def sell_holdings(symbol, holdings_data):
     """ Place an order to sell all holdings of a stock.
 
@@ -258,8 +274,8 @@ def scan_stocks():
     # print("Current Watchlist: " + str(watchlist_symbols) + "\n")
     print("----- Scanning portfolio for stocks to sell -----\n")
     for symbol in portfolio_symbols:
-        cross = golden_cross(symbol, n1=50, n2=200, days=30, direction="below")
-        stock_data.append({'symbol': symbol, 'cross': cross})
+        cross = golden_cross(symbol, n1=50, n2=200, days=14, direction="below")
+        stock_data.append({'symbol': symbol, 'cross': cross, 'rsi': rsi(symbol=symbol, days=14)})
         if(cross == -1):
             sell_holdings(symbol, holdings_data)
             sells.append(symbol)
@@ -267,8 +283,8 @@ def scan_stocks():
     print("\n----- Scanning watchlist for stocks to buy -----\n")
     for symbol in spy_symbols:
         if(symbol not in portfolio_symbols):
-            cross = golden_cross(symbol, n1=50, n2=200, days=10, direction="above")
-            stock_data.append({'symbol': symbol, 'cross': cross})
+            cross = golden_cross(symbol, n1=50, n2=200, days=14, direction="above")
+            stock_data.append({'symbol': symbol, 'cross': cross, 'rsi': rsi(symbol=symbol, days=14)})
             if(cross == 1):
                 potential_buys.append(symbol)
     if(len(potential_buys) > 0):

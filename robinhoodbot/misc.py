@@ -20,6 +20,22 @@ def cross_to_str(cross):
     else:
         return "No Data"
 
+def rsi_to_str(rsi):
+    """Converts rsi float to readable string
+
+    Args:
+        rsi(float)
+
+    Returns:
+        rsi_str(string)
+    """
+    if rsi <= 30:
+        return colored(str('%.2f' % rsi), 'green')
+    elif rsi >= 70:
+        return colored(str('%.2f' % rsi), 'red')
+    else:
+        return str('%.2f' % rsi)
+
 def print_table(stock_data):
     """Prints a table of all stock symbols and key indicators
 
@@ -29,10 +45,10 @@ def print_table(stock_data):
     Returns:
         None
     """
-    print ("{:<10} {:<10} \n".format('SYMBOL', 'CROSS')) 
+    print ("{:<10} {:<15} {:<10} \n".format('SYMBOL', 'CROSS', 'RSI')) 
 
     for data in stock_data: 
-        print ("{:<10} {:<10}".format(data['symbol'], cross_to_str(data['cross']))) 
+        print ("{:<10} {:<15} {:<10}".format(data['symbol'], cross_to_str(data['cross']), rsi_to_str(data['rsi'])))
 
 def show_plot(price, firstIndicator, secondIndicator, dates, symbol="", label1="", label2=""):
     """Displays a chart of the price and indicators for a stock
