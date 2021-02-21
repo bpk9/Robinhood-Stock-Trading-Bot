@@ -144,7 +144,7 @@ def five_year_check(stockTicker):
     """
     instrument = r.get_instruments_by_symbols(stockTicker)
     list_date = instrument[0].get("list_date")
-    if ((pd.Timestamp("now") - pd.to_datetime(list_date)) < pd.Timedelta("5 Y")):
+    if ((pd.Timestamp("now") - pd.to_datetime(list_date)) < pd.Timedelta(5*365)):
         return True
     fiveyear = r.get_historicals(stockTicker,span='5year',bounds='regular')
     closingPrices = []
@@ -253,11 +253,13 @@ def scan_stocks():
     holdings_data = get_modified_holdings()
     potential_buys = []
     sells = []
+    stock_data = []
     print("Current Portfolio: " + str(portfolio_symbols) + "\n")
     # print("Current Watchlist: " + str(watchlist_symbols) + "\n")
     print("----- Scanning portfolio for stocks to sell -----\n")
     for symbol in portfolio_symbols:
         cross = golden_cross(symbol, n1=50, n2=200, days=30, direction="below")
+        stock_data.append({'symbol': symbol, 'cross': cross})
         if(cross == -1):
             sell_holdings(symbol, holdings_data)
             sells.append(symbol)
@@ -266,6 +268,7 @@ def scan_stocks():
     for symbol in spy_symbols:
         if(symbol not in portfolio_symbols):
             cross = golden_cross(symbol, n1=50, n2=200, days=10, direction="above")
+            stock_data.append({'symbol': symbol, 'cross': cross})
             if(cross == 1):
                 potential_buys.append(symbol)
     if(len(potential_buys) > 0):
@@ -273,6 +276,7 @@ def scan_stocks():
     if(len(sells) > 0):
         update_trade_history(sells, holdings_data, "tradehistory.txt")
     print("----- Scan over -----\n")
+    print_table(stock_data)
     if debug:
         print("----- DEBUG MODE -----\n")
 

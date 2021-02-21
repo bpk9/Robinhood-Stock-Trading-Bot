@@ -2,6 +2,37 @@ import robin_stocks as r
 import matplotlib.pyplot as plt
 import matplotlib.ticker as plticker
 import numpy as np
+from termcolor import colored
+
+def cross_to_str(cross):
+    """Converts cross int to readable string
+
+    Args:
+        cross(int)
+
+    Returns:
+        cross_str(string)
+    """
+    if cross == 1:
+        return colored("Golden Cross", 'green')
+    elif cross == -1:
+        return colored("Death Cross", 'red')
+    else:
+        return "No Data"
+
+def print_table(stock_data):
+    """Prints a table of all stock symbols and key indicators
+
+    Args:
+        stock_data(dict)
+
+    Returns:
+        None
+    """
+    print ("{:<10} {:<10} \n".format('SYMBOL', 'CROSS')) 
+
+    for data in stock_data: 
+        print ("{:<10} {:<10}".format(data['symbol'], cross_to_str(data['cross']))) 
 
 def show_plot(price, firstIndicator, secondIndicator, dates, symbol="", label1="", label2=""):
     """Displays a chart of the price and indicators for a stock
@@ -15,8 +46,7 @@ def show_plot(price, firstIndicator, secondIndicator, dates, symbol="", label1="
         label2(str): Chart label of the first technical indicator
 
     Returns:
-        True if the stock's current price is higher than it was five years ago, or the stock IPO'd within the last five years
-        False otherwise
+        None
     """
     plt.figure(figsize=(10,5))
     plt.title(symbol)
