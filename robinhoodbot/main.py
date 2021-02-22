@@ -132,22 +132,6 @@ def get_last_crossing(df, days, symbol="", direction=""):
     else:
         return 0
 
-def five_year_check(stockTicker):
-    """Figure out if a stock has risen or been created within the last five years.
-
-    Args:
-        stockTicker(str): Symbol of the stock we're querying
-
-    Returns:
-        True if the stock's current price is higher than it was five years ago, or the stock IPO'd within the last five years
-        False otherwise
-    """
-    instrument = r.get_instruments_by_symbols(stockTicker)
-    list_date = instrument[0].get("list_date")
-    if ((pd.Timestamp("now") - pd.to_datetime(list_date)) < pd.Timedelta(5*365)):
-        return True
-    fiveyear = r.get_historicals(stockTicker,span='5year',bounds='regular')
-    closingPrices = []
     for item in fiveyear:
         closingPrices.append(float(item['close_price']))
     recent_price = closingPrices[len(closingPrices) - 1]
@@ -172,9 +156,7 @@ def golden_cross(stockTicker, n1, n2, days, direction=""):
         False if direction == "above" and five_year_check(stockTicker) returns False, meaning that we're considering whether to
             buy the stock but it hasn't risen overall in the last five years, suggesting it contains fundamental issues
     """
-    if(direction == "above" and not five_year_check(stockTicker)):
-        return False
-    history = r.get_historicals(stockTicker,span='year',bounds='regular')
+    history = get_historicals(stockTicker)
     closingPrices = []
     dates = []
     for item in history:
@@ -192,7 +174,7 @@ def golden_cross(stockTicker, n1, n2, days, direction=""):
         show_plot(price, ema1, ema2, dates, symbol=stockTicker, label1=str(n1)+" day EMA", label2=str(n2)+" day EMA")
     return cross
 
-def rsi(symbol, days):
+def get_rsi(symbol, days):
     """Determine the relative strength index for a specified stock in the last X trading days
 
     Args:
@@ -202,10 +184,26 @@ def rsi(symbol, days):
     Returns:
         rsi(float): Relative strength index value for a specified stock in the last X trading days
     """
-    history = r.get_historicals(symbol, span='year', bounds='regular')
+    history = get_historicals(symbol)
     closingPrices = [ float(item['close_price']) for item in history ]
     price = pd.Series(closingPrices)
     rsi = ta.momentum.RSIIndicator(close=price, window=int(days), fillna=False).rsi()
+    return rsi.iat[-1]
+
+def get_macd(symbol, days):
+    """Determine the Moving Average Convergence/Divergence for a specified stock in the last X trading days
+
+    Args:
+        symbol(str): Symbol of the stock we're querying
+        days(int): Specifies the maximum number of days that the cross can occur by
+
+    Returns:
+        rsi(float): Relative strength index value for a specified stock in the last X trading days
+    """
+    history = get_historicals(symbol)
+    closingPrices = [ float(item['close_price']) for item in history ]
+    price = pd.Series(closingPrices)
+    rsi = ta.momentum.MACD(close, fastperiod=12, slowperiod=26, signalperiod=9)
     return rsi.iat[-1]
 
 def sell_holdings(symbol, holdings_data):
@@ -275,7 +273,7 @@ def scan_stocks():
     print("----- Scanning portfolio for stocks to sell -----\n")
     for symbol in portfolio_symbols:
         cross = golden_cross(symbol, n1=50, n2=200, days=14, direction="below")
-        stock_data.append({'symbol': symbol, 'cross': cross, 'rsi': rsi(symbol=symbol, days=14)})
+        stock_data.append({'symbol': symbol, 'cross': cross, 'rsi': get_rsi(symbol=symbol, days=14)})
         if(cross == -1):
             sell_holdings(symbol, holdings_data)
             sells.append(symbol)
@@ -284,7 +282,7 @@ def scan_stocks():
     for symbol in spy_symbols:
         if(symbol not in portfolio_symbols):
             cross = golden_cross(symbol, n1=50, n2=200, days=14, direction="above")
-            stock_data.append({'symbol': symbol, 'cross': cross, 'rsi': rsi(symbol=symbol, days=14)})
+            stock_data.append({'symbol': symbol, 'cross': cross, 'rsi': get_rsi(symbol=symbol, days=14)})
             if(cross == 1):
                 potential_buys.append(symbol)
     if(len(potential_buys) > 0):
