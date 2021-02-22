@@ -39,6 +39,20 @@ def rsi_to_str(rsi):
     else:
         return str('%.2f' % rsi)
 
+def macd_to_str(macd):
+    """Converts macd float to readable string
+
+    Args:
+        macd(float)
+
+    Returns:
+        macd_str(string)
+    """
+    if macd > 0:
+        return colored(str('%.2f' % macd), 'green')
+    else:
+        return colored(str('%.2f' % macd), 'red')
+
 def print_table(stock_data):
     """Prints a table of all stock symbols and key indicators
 
@@ -48,10 +62,10 @@ def print_table(stock_data):
     Returns:
         None
     """
-    print ("{}\t{}\t{}".format('SYMBOL', 'RSI', 'CROSS')) 
+    print ("{}\t{}\t{}\t{}".format('SYMBOL', 'RSI', 'MACD', 'CROSS')) 
 
     for data in stock_data: 
-        print ("{}\t{}\t{}".format(data['symbol'], rsi_to_str(data['rsi']), cross_to_str(data['cross'])))
+        print ("{}\t{}\t{}\t{}".format(data['symbol'], rsi_to_str(data['rsi']), macd_to_str(data['macd']), cross_to_str(data['cross'])))
 
 def show_plot(price, firstIndicator, secondIndicator, dates, symbol="", label1="", label2=""):
     """Displays a chart of the price and indicators for a stock

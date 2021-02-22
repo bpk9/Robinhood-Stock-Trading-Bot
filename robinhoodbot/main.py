@@ -190,21 +190,20 @@ def get_rsi(symbol, days):
     rsi = ta.momentum.RSIIndicator(close=price, window=int(days), fillna=False).rsi()
     return rsi.iat[-1]
 
-def get_macd(symbol, days):
-    """Determine the Moving Average Convergence/Divergence for a specified stock in the last X trading days
+def get_macd(symbol):
+    """Determine the Moving Average Convergence/Divergence for a specified stock 
 
     Args:
         symbol(str): Symbol of the stock we're querying
-        days(int): Specifies the maximum number of days that the cross can occur by
 
     Returns:
-        rsi(float): Relative strength index value for a specified stock in the last X trading days
+        rsi(float): Moving Average Convergence/Divergence value for a specified stock 
     """
     history = get_historicals(symbol)
     closingPrices = [ float(item['close_price']) for item in history ]
     price = pd.Series(closingPrices)
-    rsi = ta.momentum.MACD(close, fastperiod=12, slowperiod=26, signalperiod=9)
-    return rsi.iat[-1]
+    macd = ta.trend.MACD(price).macd_diff()
+    return macd.iat[-1]
 
 def sell_holdings(symbol, holdings_data):
     """ Place an order to sell all holdings of a stock.
@@ -273,7 +272,7 @@ def scan_stocks():
     print("----- Scanning portfolio for stocks to sell -----\n")
     for symbol in portfolio_symbols:
         cross = golden_cross(symbol, n1=50, n2=200, days=14, direction="below")
-        stock_data.append({'symbol': symbol, 'cross': cross, 'rsi': get_rsi(symbol=symbol, days=14)})
+        stock_data.append({'symbol': symbol, 'cross': cross, 'rsi': get_rsi(symbol=symbol, days=14), 'macd': get_macd(symbol=symbol)})
         if(cross == -1):
             sell_holdings(symbol, holdings_data)
             sells.append(symbol)
@@ -282,7 +281,7 @@ def scan_stocks():
     for symbol in spy_symbols:
         if(symbol not in portfolio_symbols):
             cross = golden_cross(symbol, n1=50, n2=200, days=14, direction="above")
-            stock_data.append({'symbol': symbol, 'cross': cross, 'rsi': get_rsi(symbol=symbol, days=14)})
+            stock_data.append({'symbol': symbol, 'cross': cross, 'rsi': get_rsi(symbol=symbol, days=14), 'macd': get_macd(symbol=symbol)})
             if(cross == 1):
                 potential_buys.append(symbol)
     if(len(potential_buys) > 0):
