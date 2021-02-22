@@ -53,6 +53,20 @@ def macd_to_str(macd):
     else:
         return colored(str('%.2f' % macd), 'red')
 
+def rating_to_str(rating):
+    """Converts rating float to readable string
+
+    Args:
+        rating(float)
+
+    Returns:
+        rating_str(string)
+    """
+    if rating > 60:
+        return colored(str('%.0f' % rating), 'green')
+    else:
+        return colored(str('%.0f' % rating), 'red')
+
 def print_table(stock_data):
     """Prints a table of all stock symbols and key indicators
 
@@ -62,10 +76,10 @@ def print_table(stock_data):
     Returns:
         None
     """
-    print ("{}\t{}\t{}\t{}".format('SYMBOL', 'RSI', 'MACD', 'CROSS')) 
+    print ("{}\t{}\t{}\t{}\t{}".format('SYMBOL', 'RSI', 'MACD', 'RATING', 'CROSS')) 
 
     for data in stock_data: 
-        print ("{}\t{}\t{}\t{}".format(data['symbol'], rsi_to_str(data['rsi']), macd_to_str(data['macd']), cross_to_str(data['cross'])))
+        print ("{}\t{}\t{}\t{}\t{}".format(data['symbol'], rsi_to_str(data['rsi']), macd_to_str(data['macd']), rating_to_str(data['buy_rating']), cross_to_str(data['cross'])))
 
 def show_plot(price, firstIndicator, secondIndicator, dates, symbol="", label1="", label2=""):
     """Displays a chart of the price and indicators for a stock

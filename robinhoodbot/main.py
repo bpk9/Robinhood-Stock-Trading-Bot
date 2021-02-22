@@ -205,6 +205,22 @@ def get_macd(symbol):
     macd = ta.trend.MACD(price).macd_diff()
     return macd.iat[-1]
 
+def get_buy_rating(symbol):
+    """Determine the listed investor rating for a specified stock 
+
+    Args:
+        symbol(str): Symbol of the stock we're querying
+
+    Returns:
+        rating(int): 0-100 rating of a particular stock 
+    """ 
+    ratings = r.get_ratings(symbol=symbol)['summary']
+    
+    if ratings:
+        return ratings['num_buy_ratings'] / (ratings['num_buy_ratings'] + ratings['num_hold_ratings'] + ratings['num_sell_ratings']) * 100
+    
+    return 0
+
 def sell_holdings(symbol, holdings_data):
     """ Place an order to sell all holdings of a stock.
 
@@ -272,7 +288,7 @@ def scan_stocks():
     print("----- Scanning portfolio for stocks to sell -----\n")
     for symbol in portfolio_symbols:
         cross = golden_cross(symbol, n1=50, n2=200, days=14, direction="below")
-        stock_data.append({'symbol': symbol, 'cross': cross, 'rsi': get_rsi(symbol=symbol, days=14), 'macd': get_macd(symbol=symbol)})
+        stock_data.append({'symbol': symbol, 'cross': cross, 'rsi': get_rsi(symbol=symbol, days=14), 'macd': get_macd(symbol=symbol), 'buy_rating': get_buy_rating(symbol=symbol)})
         if(cross == -1):
             sell_holdings(symbol, holdings_data)
             sells.append(symbol)
@@ -281,7 +297,7 @@ def scan_stocks():
     for symbol in spy_symbols:
         if(symbol not in portfolio_symbols):
             cross = golden_cross(symbol, n1=50, n2=200, days=14, direction="above")
-            stock_data.append({'symbol': symbol, 'cross': cross, 'rsi': get_rsi(symbol=symbol, days=14), 'macd': get_macd(symbol=symbol)})
+            stock_data.append({'symbol': symbol, 'cross': cross, 'rsi': get_rsi(symbol=symbol, days=14), 'macd': get_macd(symbol=symbol), 'buy_rating': get_buy_rating(symbol=symbol)})
             if(cross == 1):
                 potential_buys.append(symbol)
     if(len(potential_buys) > 0):
