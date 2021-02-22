@@ -48,10 +48,10 @@ def print_table(stock_data):
     Returns:
         None
     """
-    print ("{:<10} {:<15} {:<10} \n".format('SYMBOL', 'CROSS', 'RSI')) 
+    print ("{}\t{}\t{}".format('SYMBOL', 'RSI', 'CROSS')) 
 
     for data in stock_data: 
-        print ("{:<10} {:<15} {:<10}".format(data['symbol'], cross_to_str(data['cross']), rsi_to_str(data['rsi'])))
+        print ("{}\t{}\t{}".format(data['symbol'], rsi_to_str(data['rsi']), cross_to_str(data['cross'])))
 
 def show_plot(price, firstIndicator, secondIndicator, dates, symbol="", label1="", label2=""):
     """Displays a chart of the price and indicators for a stock
