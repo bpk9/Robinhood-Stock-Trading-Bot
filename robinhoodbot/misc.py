@@ -11,17 +11,15 @@ def cross_to_str(cross):
     """Converts cross int to readable string
 
     Args:
-        cross(int)
+        cross(bool)
 
     Returns:
         cross_str(string)
     """
-    if cross == 1:
-        return colored("Golden Cross", 'green')
-    elif cross == -1:
-        return colored("Death Cross", 'red')
+    if cross == True:
+        return colored("Bullish", 'green')
     else:
-        return "No Data"
+        return colored("Bearish", 'red')
 
 def rsi_to_str(rsi):
     """Converts rsi float to readable string
@@ -62,7 +60,7 @@ def rating_to_str(rating):
     Returns:
         rating_str(string)
     """
-    if rating > 60:
+    if rating >= 60:
         return colored(str('%.0f' % rating), 'green')
     else:
         return colored(str('%.0f' % rating), 'red')
@@ -76,10 +74,24 @@ def print_table(stock_data):
     Returns:
         None
     """
-    print ("{}\t{}\t{}\t{}\t{}".format('SYMBOL', 'RSI', 'MACD', 'RATING', 'CROSS')) 
+    # print ("{}\t{}\t{}\t{}\t{}".format('SYMBOL', 'RSI', 'MACD', 'RATING', 'EMA')) 
+
+    potential_stocks = []
 
     for data in stock_data: 
-        print ("{}\t{}\t{}\t{}\t{}".format(data['symbol'], rsi_to_str(data['rsi']), macd_to_str(data['macd']), rating_to_str(data['buy_rating']), cross_to_str(data['cross'])))
+        # print ("{}\t{}\t{}\t{}\t{}".format(data['symbol'], rsi_to_str(data['rsi']), macd_to_str(data['macd']), rating_to_str(data['buy_rating']), cross_to_str(data['cross'])))
+        if (data['rsi'] < 50) and (data['macd'] > 0) and (data['buy_rating'] >= 60) and (data['cross'] == True):
+            potential_stocks.append(data)
+
+    print()
+    print("STOCKS TO CHECK OUT")
+    print("-------------------")
+    print()
+    print ("{}\t{}\t\t{}\t{}\t{}\t{}".format('SYMBOL', 'PRICE', 'RSI', 'MACD', 'RATING', 'EMA')) 
+    print()
+
+    for data in potential_stocks:
+        print ("{}\t${:.2f}\t\t{}\t{}\t{}\t{}".format(data['symbol'], data['price'], rsi_to_str(data['rsi']), macd_to_str(data['macd']), rating_to_str(data['buy_rating']), cross_to_str(data['cross'])))
 
 def show_plot(price, firstIndicator, secondIndicator, dates, symbol="", label1="", label2=""):
     """Displays a chart of the price and indicators for a stock
@@ -132,4 +144,5 @@ def get_historicals(symbol):
     """
     if symbol not in historicals.keys():
         historicals[symbol] = r.get_historicals(symbol, span='year', bounds='regular')
+        print("Fetched historicals for: {}".format(symbol))
     return historicals[symbol]

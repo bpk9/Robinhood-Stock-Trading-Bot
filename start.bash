@@ -1,1 +1,1 @@
-python3 robinhoodbot/main.py
+cd robinhoodbot && python3 main.py

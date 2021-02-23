@@ -89,56 +89,7 @@ def get_modified_holdings():
         holdings[symbol].update({'bought_at': bought_at})
     return holdings
 
-def get_last_crossing(df, days, symbol="", direction=""):
-    """Searches for a crossing between two indicators for a given stock
-
-    Args:
-        df(pandas.core.frame.DataFrame): Pandas dataframe with columns containing the stock's prices, both indicators, and the dates
-        days(int): Specifies the maximum number of days that the cross can occur by
-        symbol(str): Symbol of the stock we're querying. Optional, used for printing purposes
-        direction(str): "above" if we are searching for an upwards cross, "below" if we are searching for a downwaords cross. Optional, used for printing purposes
-
-    Returns:
-        1 if the short-term indicator crosses above the long-term one
-        0 if there is no cross between the indicators
-        -1 if the short-term indicator crosses below the long-term one
-    """
-    prices = df.loc[:,"Price"]
-    shortTerm = df.loc[:,"Indicator1"]
-    LongTerm = df.loc[:,"Indicator2"]
-    dates = df.loc[:,"Dates"]
-    lastIndex = prices.size - 1
-    index = lastIndex
-    found = index
-    recentDiff = (shortTerm.at[index] - LongTerm.at[index]) >= 0
-    if((direction == "above" and not recentDiff) or (direction == "below" and recentDiff)):
-        return 0
-    index -= 1
-    while(index >= 0 and found == lastIndex and not np.isnan(shortTerm.at[index]) and not np.isnan(LongTerm.at[index]) \
-                        and ((pd.Timestamp("now", tz='UTC') - dates.at[index]) <= pd.Timedelta(str(days) + " days"))):
-        if(recentDiff):
-            if((shortTerm.at[index] - LongTerm.at[index]) < 0):
-                found = index
-        else:
-            if((shortTerm.at[index] - LongTerm.at[index]) > 0):
-                found = index
-        index -= 1
-    if(found != lastIndex):
-        if((direction == "above" and recentDiff) or (direction == "below" and not recentDiff)):
-            print(symbol + ": Short EMA crossed" + (" ABOVE " if recentDiff else " BELOW ") + "Long EMA at " + str(dates.at[found]) \
-                +", which was " + str(pd.Timestamp("now", tz='UTC') - dates.at[found]) + " ago", ", price at cross: " + str(prices.at[found]) \
-                + ", current price: " + str(prices.at[lastIndex]))
-        return (1 if recentDiff else -1)
-    else:
-        return 0
-
-    for item in fiveyear:
-        closingPrices.append(float(item['close_price']))
-    recent_price = closingPrices[len(closingPrices) - 1]
-    oldest_price = closingPrices[0]
-    return (recent_price > oldest_price)
-
-def golden_cross(stockTicker, n1, n2, days, direction=""):
+def golden_cross(stockTicker, n1, n2, direction=""):
     """Determine if a golden/death cross has occured for a specified stock in the last X trading days
 
     Args:
@@ -146,15 +97,13 @@ def golden_cross(stockTicker, n1, n2, days, direction=""):
         n1(int): Specifies the short-term indicator as an X-day moving average.
         n2(int): Specifies the long-term indicator as an X-day moving average.
                  (n1 should be smaller than n2 to produce meaningful results, e.g n1=50, n2=200)
-        days(int): Specifies the maximum number of days that the cross can occur by
         direction(str): "above" if we are searching for an upwards cross, "below" if we are searching for a downwaords cross. Optional, used for printing purposes
 
     Returns:
         1 if the short-term indicator crosses above the long-term one
-        0 if there is no cross between the indicators
-        -1 if the short-term indicator crosses below the long-term one
-        False if direction == "above" and five_year_check(stockTicker) returns False, meaning that we're considering whether to
-            buy the stock but it hasn't risen overall in the last five years, suggesting it contains fundamental issues
+        0 if the short-term indicator crosses below the long-term one
+
+        price(float): last listed close price
     """
     history = get_historicals(stockTicker)
     closingPrices = []
@@ -167,12 +116,9 @@ def golden_cross(stockTicker, n1, n2, days, direction=""):
     dates = pd.to_datetime(dates)
     ema1 = ta.trend.EMAIndicator(price, int(n1)).ema_indicator()
     ema2 = ta.trend.EMAIndicator(price, int(n2)).ema_indicator()
-    series = [price.rename("Price"), ema1.rename("Indicator1"), ema2.rename("Indicator2"), dates.rename("Dates")]
-    df = pd.concat(series, axis=1)
-    cross = get_last_crossing(df, days, symbol=stockTicker, direction=direction)
-    if(cross) and plot:
+    if plot:
         show_plot(price, ema1, ema2, dates, symbol=stockTicker, label1=str(n1)+" day EMA", label2=str(n2)+" day EMA")
-    return cross
+    return ema1.iat[-1] > ema2.iat[-1],  closingPrices[len(closingPrices) - 1]
 
 def get_rsi(symbol, days):
     """Determine the relative strength index for a specified stock in the last X trading days
@@ -287,18 +233,18 @@ def scan_stocks():
     # print("Current Watchlist: " + str(watchlist_symbols) + "\n")
     print("----- Scanning portfolio for stocks to sell -----\n")
     for symbol in portfolio_symbols:
-        cross = golden_cross(symbol, n1=50, n2=200, days=14, direction="below")
-        stock_data.append({'symbol': symbol, 'cross': cross, 'rsi': get_rsi(symbol=symbol, days=14), 'macd': get_macd(symbol=symbol), 'buy_rating': get_buy_rating(symbol=symbol)})
-        if(cross == -1):
+        cross, price = golden_cross(symbol, n1=50, n2=200, direction="below")
+        stock_data.append({'symbol': symbol, 'price': price, 'cross': cross, 'rsi': get_rsi(symbol=symbol, days=14), 'macd': get_macd(symbol=symbol), 'buy_rating': get_buy_rating(symbol=symbol)})
+        if(cross == False):
             sell_holdings(symbol, holdings_data)
             sells.append(symbol)
     profile_data = r.build_user_profile()
-    print("\n----- Scanning watchlist for stocks to buy -----\n")
+    print("\n----- Scanning S&P 500 for stocks to buy -----\n")
     for symbol in spy_symbols:
         if(symbol not in portfolio_symbols):
-            cross = golden_cross(symbol, n1=50, n2=200, days=14, direction="above")
-            stock_data.append({'symbol': symbol, 'cross': cross, 'rsi': get_rsi(symbol=symbol, days=14), 'macd': get_macd(symbol=symbol), 'buy_rating': get_buy_rating(symbol=symbol)})
-            if(cross == 1):
+            cross, price = golden_cross(symbol, n1=50, n2=200, direction="above")
+            stock_data.append({'symbol': symbol, 'price': price, 'cross': cross, 'rsi': get_rsi(symbol=symbol, days=14), 'macd': get_macd(symbol=symbol), 'buy_rating': get_buy_rating(symbol=symbol)})
+            if(cross == True):
                 potential_buys.append(symbol)
     if(len(potential_buys) > 0):
         buy_holdings(potential_buys, profile_data, holdings_data)
