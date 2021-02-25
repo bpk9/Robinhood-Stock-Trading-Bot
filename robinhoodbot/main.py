@@ -232,9 +232,17 @@ def scan_stocks():
     print("Current Portfolio: " + str(portfolio_symbols) + "\n")
     # print("Current Watchlist: " + str(watchlist_symbols) + "\n")
     print("----- Scanning portfolio for stocks to sell -----\n")
+    print()
+    print("PORTFOLIO")
+    print("-------------------")
+    print()
+    print ("{}\t{}\t\t{}\t{}\t{}\t{}".format('SYMBOL', 'PRICE', 'RSI', 'MACD', 'RATING', 'EMA')) 
+    print()
     for symbol in portfolio_symbols:
         cross, price = golden_cross(symbol, n1=50, n2=200, direction="below")
-        stock_data.append({'symbol': symbol, 'price': price, 'cross': cross, 'rsi': get_rsi(symbol=symbol, days=14), 'macd': get_macd(symbol=symbol), 'buy_rating': get_buy_rating(symbol=symbol)})
+        data = {'symbol': symbol, 'price': price, 'cross': cross, 'rsi': get_rsi(symbol=symbol, days=14), 'macd': get_macd(symbol=symbol), 'buy_rating': get_buy_rating(symbol=symbol)}
+        stock_data.append(data)
+        print ("{}\t${:.2f}\t\t{}\t{}\t{}\t{}".format(data['symbol'], data['price'], rsi_to_str(data['rsi']), macd_to_str(data['macd']), rating_to_str(data['buy_rating']), cross_to_str(data['cross'])))
         if(cross == False):
             sell_holdings(symbol, holdings_data)
             sells.append(symbol)

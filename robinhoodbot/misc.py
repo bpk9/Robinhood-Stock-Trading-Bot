@@ -60,7 +60,7 @@ def rating_to_str(rating):
     Returns:
         rating_str(string)
     """
-    if rating >= 60:
+    if rating >= 70:
         return colored(str('%.0f' % rating), 'green')
     else:
         return colored(str('%.0f' % rating), 'red')
@@ -74,13 +74,13 @@ def print_table(stock_data):
     Returns:
         None
     """
-    # print ("{}\t{}\t{}\t{}\t{}".format('SYMBOL', 'RSI', 'MACD', 'RATING', 'EMA')) 
+    # print ("{}\t{}\t\t{}\t{}\t{}\t{}".format('SYMBOL', 'PRICE', 'RSI', 'MACD', 'RATING', 'EMA')) 
 
     potential_stocks = []
 
     for data in stock_data: 
-        # print ("{}\t{}\t{}\t{}\t{}".format(data['symbol'], rsi_to_str(data['rsi']), macd_to_str(data['macd']), rating_to_str(data['buy_rating']), cross_to_str(data['cross'])))
-        if (data['rsi'] < 50) and (data['macd'] > 0) and (data['buy_rating'] >= 60) and (data['cross'] == True):
+        # print ("{}\t${:.2f}\t\t{}\t{}\t{}\t{}".format(data['symbol'], data['price'], rsi_to_str(data['rsi']), macd_to_str(data['macd']), rating_to_str(data['buy_rating']), cross_to_str(data['cross'])))
+        if (data['rsi'] < 45) and (data['price'] < 200) and (data['macd'] > -1)  and (data['buy_rating'] >= 70) and (data['cross'] == True):
             potential_stocks.append(data)
 
     print()
@@ -144,5 +144,5 @@ def get_historicals(symbol):
     """
     if symbol not in historicals.keys():
         historicals[symbol] = r.get_historicals(symbol, span='year', bounds='regular')
-        print("Fetched historicals for: {}".format(symbol))
+        # print("Fetched historicals for: {}".format(symbol))
     return historicals[symbol]
